@@ -1,82 +1,16 @@
-import { generateEncryption } from '../../common/utils/security/encryption.security.js';
-import { generateHash, compareHash } from '../../common/utils/security/hash.js';
-import { createLoginCredentials } from '../../common/utils/index.js'
-import { User } from "./users.model.js";
-import jwt from "jsonwebtoken";
-import { USER_ACCESS_TOKEN_SECRET_KEY, USER_REFRESH_TOKEN_SECRET_KEY } from "../../../config/config.service.js"
-import { findOne } from "../../DB/DB.service.js"
+import {  createLoginCredentials} from '../../common/utils/index.js';
 
 
 
-export const signUp = async (userData) => {
-  try {
-    // Prepare data object with transformations
-    const data = {
-      ...userData,
-      password: await generateHash(userData.password),
-      phone: await generateEncryption(userData.phone),
-    };
 
-    // Save new user (schema handles required + unique)
-    const newUser = await User.create(data);
-    return newUser;
-  } catch (err) {
-    // Handle duplicate email error from MongoDB
-    if (err.code === 11000) {
-      throw new Error("Email already exists");
-    }
-    throw new Error(err.message);
-  }
-};
-
-export const login = async (userData, issuer) => {
-  try {
-    const { email, password } = userData;
-    if (!email || !password) {
-      throw new Error('Email and password are required');
-    }
-    const user = await User.findOne({ email });
-    if (!user) {
-      throw new Error('Invalid email');
-    }
-    const compare = await compareHash(password, user.password);
-    if (!compare) {
-      throw new Error('Invalid password');
-    }
-    return createLoginCredentials(user, issuer)
-  } catch (err) {
-    throw new Error(err.message);
-  }
-};
-
-export const rotateToken = async (token, issuer) => {
-
-  const decodeToken = jwt.decode(token);
-  console.log({ decodeToken });
-  const verifiedData = jwt.verify(token, USER_REFRESH_TOKEN_SECRET_KEY);
-  console.log({ verifiedData });
-  const user = await findOne({ model: User, filter: { _id: verifiedData.sub } });
-  if (!user) {
-    throw NotFoundException({ message: "Not register account" })
-  }
-  return createLoginCredentials(user, issuer)
+export const rotateToken = async (user, issuer) => {
+  return createLoginCredentials(user, issuer);
 }
 
-export const profile = async (token) => {
-  try {
-    const decodeToken = jwt.decode(token);
-    console.log({ decodeToken });
-    const verifiedData = jwt.verify(token, USER_ACCESS_TOKEN_SECRET_KEY);
-    console.log({ verifiedData });
-    const user = await findOne({ model: User, filter: { _id: verifiedData.sub } });
-    if (!user) {
-      throw NotFoundException({ message: "Not register account" })
-    }
-    return user
-  } catch (error) {
-    throw new Error(error.message);
-  }
+export const profile = async (user) => {
+  return user;
 }
+
 /*
 export const updateUser = async (id, updateData) => {
   try {
@@ -143,3 +77,4 @@ export const GetUser = async (id) => {
 
 
 */
+

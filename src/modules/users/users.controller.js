@@ -1,38 +1,15 @@
 import { Router } from "express";
 import * as service from "./users.service.js";
-import { authMiddleware } from "../../middlewares/auth.middleware.js";
+import { authentication, authorization } from "../../middlewares/auth.middleware.js";
 import { successResponse, BadRequestException, ConflictException, UnauthorizedException, NotFoundException, ForbiddenException } from "../../common/utils/response/index.js";
+import { TokenTypeEnum } from "../../common/enums/index.js";
+import { endPoint } from "./users.authorization.js";
 export const userRouter = Router();
 
-/*Singnup*/
-userRouter.post("/signup", async (req, res) => {
+
+userRouter.get("/profile", authentication(), authorization(endPoint.profile), async (req, res) => {
   try {
-    const newUser = await service.signUp(req.body);
-    successResponse({ res, data: newUser });
-  } catch (error) {
-    ConflictException({ res, message: error.message, status: 409 });
-  }
-});
-/*
-/*Login*/
-
-userRouter.post("/login", async (req, res) => {
-  try {
-    // Construct full base URL as issuer
-    const issuer = `${req.protocol}://${req.get('host')}`; // e.g., https://localhost:3000
-
-    const user = await service.login(req.body, issuer);
-    successResponse({ res, data: user });
-  } catch (error) {
-    BadRequestException({ res, message: error.message, status: 400 });
-  }
-});
-
-
-userRouter.get("/profile", async (req, res, next) => {
-  try {
-    const account = await service.profile(req.headers.authorization)
-    console.log(req.headers.authorization)
+    const account = await service.profile(req.user)
     successResponse({ res, data: { account } });
   } catch (error) {
     BadRequestException({ res, message: error.message, status: 400 });
@@ -40,11 +17,10 @@ userRouter.get("/profile", async (req, res, next) => {
 });
 
 
-userRouter.get("/rotate-router", async (req, res) => {
+userRouter.get("/rotate-router", authentication(TokenTypeEnum.Refresh), async (req, res) => {
   try {
-    const token = req.headers.authorization;
     const issuer = `${req.protocol}://${req.get('host')}`; // e.g., https://localhost:3000
-    const data = await service.rotateToken(token, issuer);
+    const data = await service.rotateToken(req.user, issuer);
     successResponse({ res, data: data });
   } catch (error) {
     NotFoundException({ res, message: error.message, status: 404 });

@@ -1,40 +1,57 @@
 import mongoose from "mongoose";
-
+import { providerEnum, roleEnum } from "../../common/enums/user.enum.js";
 const userSchema = new mongoose.Schema({
-    fullName: {
-        type: String,
-        required: true,
+  fullName: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: function () {
+      return this.provider == providerEnum.system
+    }
+  },
+  phone: {
+    type: String,
+    required: function () {
+      return this.provider == providerEnum.system
     },
-    email: {
-        type: String,       
-        required: true,
-        unique: true,
-    },
-    password: {
-        type: String,
-        required: true,
-    },
-    phone: {
-        type: String,
-        required: true,
-    },
-    age: {
-        type: Number,
-             validate: {
-        validator: function (v) {
-          return v >= 18 && v <= 60;
-        },
-        message: "Age should be between 18 and 60",
+  },
+  age: {
+    type: Number,
+    validate: {
+      validator: function (v) {
+        return v >= 18 && v <= 60;
       },
-            
-        }
+      message: "Age should be between 18 and 60",
+    },
+
+  },
+  profilePicture: {
+    type: String,
+  },
+  provider: {
+    type: Number,
+    enum: Object.values(providerEnum),
+    default: providerEnum.system
+  },
+  role: {
+    type: Number, 
+    enum: Object.values(roleEnum),
+    default: roleEnum.Admin
+  }
 },
-   {
+  {
     strict: true,
-     optimisticConcurrency: true ,
-    toJSON: {virtuals: true},
-    toObject: {virtuals: true}
-   }
+    optimisticConcurrency: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
 
 // Virtuals: split fullName into firstName and secondName
@@ -47,4 +64,4 @@ userSchema.virtual("secondName").get(function () {
 });
 
 
-export const User = mongoose.model("User", userSchema)|| mongoose.models.User;  
+export const User = mongoose.model("User", userSchema) || mongoose.models.User;  

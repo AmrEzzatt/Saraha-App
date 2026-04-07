@@ -1,39 +1,46 @@
 import { Router } from "express";
 import * as service from "./auth.service.js";
-import { successResponse, BadRequestException, ConflictException, UnauthorizedException, NotFoundException, ForbiddenException } from "../../common/utils/response/index.js";
+import * as validator from "./auth.validation.js";
+import { validation } from "../../middlewares/index.js";
+import {
+    successResponse,
+    BadRequestException,
+    ConflictException
+} from "../../common/utils/response/index.js";
+
 export const authRouter = Router();
 
-
-
-/*Singnup*/
-authRouter.post("auth/signup", async (req, res) => {
+authRouter.post("/signup", validation(validator.signup), async (req, res) => {
     try {
         const newUser = await service.signUp(req.body);
-        successResponse({ res, data: newUser });
+        return successResponse({ res, data: newUser, status: 201 });
     } catch (error) {
-        ConflictException({ res, message: error.message, status: 409 });
-    }
-});
-/*signupWithGmail*/
-authRouter.post("/signup/gmail", async (req, res) => {
-    try {
-        const { status, credentials } = await service.signUpWithGmail(req.body.idToken, `${req.protocol}://${req.get('host')}`);
-        successResponse({ res, status, data: { ...credentials } });
-    } catch (error) {
-        ConflictException({ res, message: error.message, status: 409 });
+        if (error.code === 11000) {
+            ConflictException({ message: "Email already exists", extra: error });
+        }
+        throw error;
     }
 });
 
-/*Login*/
-
-authRouter.post("auth/login", async (req, res) => {
+authRouter.post("/signup/gmail", validation(validator.gmailAuth), async (req, res) => {
     try {
-        // Construct full base URL as issuer
-        const issuer = `${req.protocol}://${req.get('host')}`; // e.g., https://localhost:3000
+        const { status, credentials } = await service.signUpWithGmail(
+            req.body.idToken,
+            `${req.protocol}://${req.get("host")}`
+        );
 
+        return successResponse({ res, status, data: { ...credentials } });
+    } catch (error) {
+        BadRequestException({ message: error.message, extra: error });
+    }
+});
+
+authRouter.post("/login", validation(validator.login), async (req, res) => {
+    try {
+        const issuer = `${req.protocol}://${req.get("host")}`;
         const user = await service.login(req.body, issuer);
-        successResponse({ res, data: user });
+        return successResponse({ res, data: user });
     } catch (error) {
-        BadRequestException({ res, message: error.message, status: 400 });
+        BadRequestException({ message: error.message, extra: error });
     }
 });

@@ -1,1 +1,1 @@
-export {authRouter} from "./auth.controller.js";
+export { authRouter } from "./auth.controller.js";

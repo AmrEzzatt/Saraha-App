@@ -1,7 +1,20 @@
-import {  createLoginCredentials} from '../../common/utils/index.js';
+import { createLoginCredentials, generateDecryption, NotFoundException } from '../../common/utils/index.js';
+import { find } from '../../DB/DB.service.js';
+import { User } from "./users.model.js";
 
 
+export const shareProfile = async (id) => {
+  const user = find({ model: User, filter: { _id: id }, select: "-password" ,options: { lean: true } });
+  if (!user) {
+    throw NotFoundException({ message: "Not found user" })
+  }
 
+  if (user.phone) {
+    user.phone = await generateDecryption(user.phone);
+  }
+  return user;
+
+};
 
 export const rotateToken = async (user, issuer) => {
   return createLoginCredentials(user, issuer);

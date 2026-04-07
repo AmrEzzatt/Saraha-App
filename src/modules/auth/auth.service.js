@@ -8,26 +8,18 @@ import { create, findOne } from '../../DB/DB.service.js';
 
 
 export const signUp = async (userData) => {
-    try {
-        const data = {
-            ...userData,
-            password: await generateHash(userData.password),
-            phone: await generateEncryption(userData.phone),
-        };
+    const data = {
+        ...userData,
+        password: await generateHash(userData.password),
+        phone: await generateEncryption(userData.phone),
+    };
 
-        const newUser = await User.create(data);
-        return newUser;
-    } catch (err) {
-        if (err.code === 11000) {
-            throw new Error("Email already exists");
-        }
-        throw new Error(err.message);
-    }
+    const newUser = await User.create(data);
+    return newUser;
 };
 
 
 export const login = async (userData, issuer) => {
-    try {
         const { email, password } = userData;
         if (!email || !password) {
             throw new Error('Email and password are required');
@@ -41,9 +33,7 @@ export const login = async (userData, issuer) => {
             throw new Error('Invalid password');
         }
         return createLoginCredentials(user, issuer)
-    } catch (err) {
-        throw new Error(err.message);
-    }
+ 
 };
 
 

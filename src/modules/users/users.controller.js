@@ -7,6 +7,16 @@ import { endPoint } from "./users.authorization.js";
 export const userRouter = Router();
 
 
+userRouter.get("/:userId/share-profile", async (req, res) => {
+  try {
+    const user = await service.shareProfile(req.params.userId);
+    successResponse({ res, data: user });
+  } catch (error) {
+    NotFoundException({ res, message: error.message, status: 404 });
+  }
+});
+
+
 userRouter.get("/profile", authentication(), authorization(endPoint.profile), async (req, res) => {
   try {
     const account = await service.profile(req.user)

@@ -1,4 +1,4 @@
-import {  Node_ENV  } from "../../../../config/config.service.js"
+import { Node_ENV } from "../../../../config/config.service.js"
 
 //general customized error method
 export const ErrorResponse = ({ message = "Error", status = 400, extra = undefined } = {}) => {
@@ -31,13 +31,16 @@ export const ForbiddenException = ({ message = "ForbiddenException", extra = und
 //Fixed  error  structure
 export const globalErrorHandling = (error, req, res, next) => {
     const status = error.cause?.status ?? 500;
-    const mood =  Node_ENV  == "production";
+    const mood = Node_ENV == "production";
     const defaultErrorMessage = "something went wrong Sever error";
     const displayErrorMessage = error.message || defaultErrorMessage;
     return res.status(status).json({
         status,
-        stack: mood ? undefined : error.stack,
-        errorMessage: mood ? status == 500 ? defaultErrorMessage : displayErrorMessage : displayErrorMessage
-    })
+        errorMessage: mood ? status == 500 ? defaultErrorMessage : displayErrorMessage : displayErrorMessage,
+        extra: error?.cause?.extra || undefined,
+        stack: mood ? undefined : error.stack
+
+    }
+    );
 }
 

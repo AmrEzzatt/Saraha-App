@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { providerEnum, roleEnum } from "../../common/enums/user.enum.js";
 const userSchema = new mongoose.Schema({
-  fullName: {
+  userName: {
     type: String,
     required: true,
   },
@@ -56,11 +56,11 @@ const userSchema = new mongoose.Schema({
 
 // Virtuals: split fullName into firstName and secondName
 userSchema.virtual("firstName").get(function () {
-  return this.fullName?.split(" ")[0] || "";
+  return this.userName?.split(" ")[0] || "";
 });
 
 userSchema.virtual("secondName").get(function () {
-  return this.fullName?.split(" ")[1] || "";
+  return this.userName?.split(" ")[1] || "";
 });
 
 

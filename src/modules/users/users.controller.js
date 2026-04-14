@@ -40,7 +40,7 @@ userRouter.get("/:userId/share-profile",validation(shareProfile), async (req, re
     successResponse({ res, data: user });
   } catch (error) {
     NotFoundException({ res, message: error.message, status: 404 });
-  }
+  } 
 });
 
 

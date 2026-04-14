@@ -4,6 +4,7 @@ import { PORT } from "../config/config.service.js";
 import { userRouter } from "./modules/users/index.js";
 import { authRouter } from "./modules/auth/index.js";
 import { globalErrorHandling } from "./common/utils/index.js";
+import { resolve } from 'path';
 import cors from "cors";
 
 export const bootstrap = async (port) => {
@@ -11,6 +12,7 @@ export const bootstrap = async (port) => {
 
   // Parse JSON
   app.use(cors(), express.json());
+   app.use("/uploads", express.static(resolve("../uploads")));
 
   // DB Connection
   await authenticateDB();

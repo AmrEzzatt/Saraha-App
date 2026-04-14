@@ -12,5 +12,5 @@ export const roleEnum = {
 
 export const providerEnum = {
     system: 0,
-    Google: 1
+    Google: 1 
 }

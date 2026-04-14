@@ -4,10 +4,37 @@ import { authentication, authorization } from "../../middlewares/auth.middleware
 import { successResponse, BadRequestException, ConflictException, UnauthorizedException, NotFoundException, ForbiddenException } from "../../common/utils/response/index.js";
 import { TokenTypeEnum } from "../../common/enums/index.js";
 import { endPoint } from "./users.authorization.js";
+import { localFileUpload,fileFieldValidation } from "../../common/utils/multer/index.js";
+import { validation } from "../../middlewares/validation.middleware.js";
+import { profileImage, shareProfile, profileCoverImage } from "./users.validate.js";
 export const userRouter = Router();
 
 
-userRouter.get("/:userId/share-profile", async (req, res) => {
+
+
+userRouter.post("/logout", authentication(), async (req, res, next) => {
+
+const account = await service.logout(req.body, req.user, req.decoded);
+return successResponse({ res, data: account, message: "Logout successfully" });
+})
+
+
+
+
+
+
+userRouter.patch("/profile-image", authentication(),localFileUpload({ customPath: "info",validation: fileFieldValidation.image,maxfileSize:10 }).single("attachment"),validation(profileImage), async (req, res) => {
+  const account = await service.ProfileImage(req.user, req.file);
+  successResponse({ res, data: account });
+})
+
+ userRouter.patch("/cover-profile-image", authentication(),localFileUpload({ customPath: "info",validation: fileFieldValidation.image }).array("attachments", 5),validation(profileCoverImage), async (req, res) => {
+  const account = await service.coverProfilePicture(req.user, req.files);
+  successResponse({ res, data: account });
+}) 
+
+
+userRouter.get("/:userId/share-profile",validation(shareProfile), async (req, res) => {
   try {
     const user = await service.shareProfile(req.params.userId);
     successResponse({ res, data: user });
@@ -27,11 +54,11 @@ userRouter.get("/profile", authentication(), authorization(endPoint.profile), as
 });
 
 
-userRouter.get("/rotate-router", authentication(TokenTypeEnum.Refresh), async (req, res) => {
+userRouter.get("/rotate-router", authentication(TokenTypeEnum.Refresh), async (req, res, next) => {
   try {
     const issuer = `${req.protocol}://${req.get('host')}`; // e.g., https://localhost:3000
-    const data = await service.rotateToken(req.user, issuer);
-    successResponse({ res, data: data });
+    const data = await service.rotateToken(req.user, req.decoded, issuer);
+    successResponse({ res,status: 201, data: {...data} });
   } catch (error) {
     NotFoundException({ res, message: error.message, status: 404 });
   }

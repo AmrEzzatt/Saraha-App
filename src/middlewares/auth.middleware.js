@@ -6,15 +6,19 @@ import { UnauthorizedException } from "../common/utils/response/index.js";
 
 export const authentication = (tokenType = TokenTypeEnum.Access) => {
   return async (req, res, next) => {
-    const [schema, credentials] = req.headers.authorization.split(" ") || [];
-    console.log({ authorization, schema, credentials });
-    if (schema !== "Bearer" || !credentials) {
-      throw UnauthorizedException({ message: "missing authorization header or invalid schema" })
+    const [key, credentials] = req.headers.authorization.split(" ") || [];
+    
+    if (!key || !credentials) {
+      throw UnauthorizedException({ message: "missing authorization header" })
     }
-    req.user = await decodeToken({ token: credentials, tokenType })
-    next()
+
+  
+        const {user,decoded} = await decodeToken({ token: credentials, tokenType });
+        req.user = user;
+        req.decoded = decoded;  
+        next()
   }
-}
+}  
 
 
 export const authorization = (accessRoles = []) => {

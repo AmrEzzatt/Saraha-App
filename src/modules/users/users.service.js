@@ -1,10 +1,56 @@
 import { createLoginCredentials, generateDecryption, NotFoundException } from '../../common/utils/index.js';
 import { find } from '../../DB/DB.service.js';
 import { User } from "./users.model.js";
+import { create, deleteOne } from "../../DB/DB.service.js";
+import { LogoutEnum } from '../../common/utils/index.js';
+import { tokenModel } from "../../DB/models/token.model.js";
+import { ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_IN } from "../../../config/config.service.js";
+import { BadRequestException, ConflictException } from "../../common/utils/response/index.js";
+
+export const logout = async ({flag}, user, { jti, iat }) => {
+  let status = 200;
+ 
+  switch (flag) {
+    case LogoutEnum.All:
+      user.changeCredentialsTime = new Date();
+      await user.save();
+      await deleteOne({ model: tokenModel, filter: { userId: user._id } });
+      break;
+
+    default:
+     const expireAt= new Date((iat + REFRESH_TOKEN_EXPIRES_IN) * 1000)
+      await create({
+        model: tokenModel,
+        data: {
+          userId: user._id,
+          jti,
+          expiresIn: expireAt
+        }
+      });
+
+      status = 201;
+      break;
+  }
+
+  return status;
+};
+
+
+export const ProfileImage = async (user, file) => {
+  user.profilePicture = file.finalPath;
+  await user.save();
+  return user;
+}
+
+export const coverProfilePicture = async (user, files) => {
+  user.coverProfilePicture = files.map(file => file.finalPath);
+  await user.save();
+  return user;
+};
 
 
 export const shareProfile = async (id) => {
-  const user = find({ model: User, filter: { _id: id }, select: "-password" ,options: { lean: true } });
+  const user = await find({ model: User, filter: { _id: id }, select: "-password", options: { lean: true } });
   if (!user) {
     throw NotFoundException({ message: "Not found user" })
   }
@@ -16,7 +62,20 @@ export const shareProfile = async (id) => {
 
 };
 
-export const rotateToken = async (user, issuer) => {
+export const rotateToken = async (user,{ jti, iat }, issuer) => {
+
+   /* if ((iat + ACCESS_TOKEN_EXPIRES_IN) * 1000 >= Date.now()) {
+    throw ConflictException({ message: "Current access token still valid" });
+  }*/
+
+  await createOne({
+    model: tokenModel,
+    data: {
+      userId: user._id,
+      jti,
+      expiresIn: new Date((iat + ACCESS_TOKEN_EXPIRES_IN) * 1000)
+    }
+  });
   return createLoginCredentials(user, issuer);
 }
 

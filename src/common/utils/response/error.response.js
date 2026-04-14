@@ -1,3 +1,4 @@
+import multer from "multer"
 import { Node_ENV } from "../../../../config/config.service.js"
 
 //general customized error method
@@ -30,10 +31,13 @@ export const ForbiddenException = ({ message = "ForbiddenException", extra = und
 
 //Fixed  error  structure
 export const globalErrorHandling = (error, req, res, next) => {
-    const status = error.cause?.status ?? 500;
+    let status = error.cause?.status ?? 500;
     const mood = Node_ENV == "production";
     const defaultErrorMessage = "something went wrong Sever error";
     const displayErrorMessage = error.message || defaultErrorMessage;
+   if(error instanceof multer.MulterError){
+        status = 400;
+   }
     return res.status(status).json({
         status,
         errorMessage: mood ? status == 500 ? defaultErrorMessage : displayErrorMessage : displayErrorMessage,

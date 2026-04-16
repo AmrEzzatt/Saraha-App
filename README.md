@@ -1,74 +1,143 @@
-📩 Saraha App (Backend)
+# Saraha App Backend
 
-A RESTful API for an anonymous messaging platform inspired by Saraha, allowing users to receive honest feedback without revealing the sender's identity.
+Backend API for a Saraha-style anonymous messaging app built with Node.js, Express, MongoDB, and Redis.
 
-🚀 Project Overview
+## Overview
 
-Saraha App is a backend system that enables users to:
+This project provides:
 
-Create an account and authenticate securely
-Receive anonymous messages from others
-Share their profile link to collect feedback
-Manage their personal data
+- Authentication with email/password
+- Google sign up
+- JWT access and refresh tokens
+- User profile and share-profile endpoints
+- Profile image and cover image upload
+- Redis-backed token revocation helpers
 
-The goal of this project is to build a secure, scalable, and real-world backend application using modern technologies.
+## Tech Stack
 
-✨ Features
-🔐 Authentication System
-Signup & login with email and password
-Sign in with Google (OAuth)
-JWT-based authentication
-Password hashing using bcrypt
-📩 Anonymous Messaging
-Send messages anonymously
-Receive private messages
-👤 User Management
-Get user profile
-Update user data
-Change password
-🛡️ Security
-Encrypted passwords
-Protected routes using JWT
-Environment variables for sensitive data
-Request validation
-🔐 Authentication Methods
-1. Email & Password
-Traditional authentication system
-Secure password storage using hashing
-2. Google OAuth
-Login/signup using Google account
-Faster and more secure authentication
-No need to remember passwords
-🛠️ Tech Stack
-Runtime: Node.js
-Framework: Express.js
-Database: MongoDB
-ODM: Mongoose
-Authentication: JSON Web Token (JWT)
-Hashing: bcrypt
-OAuth: Google OAuth
-Environment Management: dotenv
-📂 Project Structure
+- Node.js
+- Express
+- MongoDB with Mongoose
+- Redis
+- JWT
+- bcrypt
+- Joi
+- multer
+- dotenv
+
+## Project Structure
+
+```text
 src/
-│── modules/
-│   ├── auth/
-│   ├── user/
-│   └── message/
-│
-│── middleware/
-│── utils/
-│── config/
-│── app.js
-│── server.js
-⚙️ Installation & Setup
-# Clone the repository
-git clone https://github.com/AmrEzzatt/Saraha-App.git
+  app.bootstrap.js
+  main.js
+  DB/
+    models/
+  common/
+    enums/
+    services/
+    utils/
+  middlewares/
+  modules/
+    auth/
+    users/
+config/
+  .env.development
+  .env.production
+  config.service.js
+```
 
-# Navigate to project directory
-cd Saraha-App
+## Available Scripts
 
-# Install dependencies
+```bash
+npm run start:dev
+npm run start:prod
+```
+
+`start:dev` runs the app with `NODE_ENV=development` and watches `src/main.js`.
+
+## Environment Variables
+
+The app loads environment variables from:
+
+- `config/.env.development` when `NODE_ENV=development`
+- `config/.env.production` when `NODE_ENV=production`
+
+Required variables:
+
+```env
+PORT=3000
+DB_URI=your_mongodb_connection_string
+DB_NAME=Saraha_App_db
+
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=1h
+
+ENC_SECRET=your_encryption_secret
+IV_LENGTH=16
+SALT_ROUNDS=10
+
+USER_ACCESS_TOKEN_SECRET_KEY=your_user_access_secret
+USER_REFRESH_TOKEN_SECRET_KEY=your_user_refresh_secret
+SYSTEM_ACCESS_TOKEN_SECRET_KEY=your_system_access_secret
+SYSTEM_REFRESH_TOKEN_SECRET_KEY=your_system_refresh_secret
+
+ACCESS_TOKEN_EXPIRES_IN=3600
+REFRESH_TOKEN_EXPIRES_IN=604800
+
+REDIS_URI=rediss://default:password@host:6379
+```
+
+Note:
+
+- `ACCESS_TOKEN_EXPIRES_IN` and `REFRESH_TOKEN_EXPIRES_IN` are parsed with `parseInt(...)`, so they should be numeric values in seconds.
+- Do not write values like `60 * 60` inside `.env` files.
+
+## Getting Started
+
+```bash
+git clone <your-repo-url>
+cd Code
 npm install
+npm run start:dev
+```
 
-# Run development server
-npm run dev
+When the app starts successfully, it connects to MongoDB and Redis, then listens on:
+
+```text
+http://localhost:3000
+```
+
+## API Routes
+
+Base routes configured in [src/app.bootstrap.js](/e:/route backend/training/Saraha App/Code/src/app.bootstrap.js:1):
+
+- `/auth`
+- `/users`
+
+Authentication routes:
+
+- `POST /auth/signup`
+- `POST /auth/signup/gmail`
+- `POST /auth/login`
+
+User routes:
+
+- `POST /users/logout`
+- `PATCH /users/profile-image`
+- `PATCH /users/cover-profile-image`
+- `GET /users/:userId/share-profile`
+- `GET /users/profile`
+- `GET /users/rotate-router`
+
+## Redis Usage
+
+Redis is used for token revocation support.
+
+Connection setup lives in [src/DB/models/redis.connection.js](/e:/route backend/training/Saraha App/Code/src/DB/models/redis.connection.js:1), and helper functions live in [src/common/services/redis.service.js](/e:/route backend/training/Saraha App/Code/src/common/services/redis.service.js:1).
+
+## Notes
+
+- The app uses ES modules (`"type": "module"` in `package.json`).
+- Uploaded files are served from `/uploads`.
+- CORS and JSON body parsing are enabled globally.

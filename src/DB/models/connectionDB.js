@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
-import { User } from '../modules/users/users.model.js'
-import { DB_URI } from '../../config/config.service.js'
+import { User } from '../../modules/users/users.model.js'
+import { DB_URI } from '../../../config/config.service.js'
 
 
 export const authenticateDB = async () => {

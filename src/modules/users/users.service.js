@@ -1,32 +1,33 @@
-import { createLoginCredentials, generateDecryption, NotFoundException } from '../../common/utils/index.js';
-import { find } from '../../DB/DB.service.js';
+import { ConflictException, createLoginCredentials, generateDecryption, NotFoundException } from '../../common/utils/index.js';
+import { find } from '../../DB/models/DB.service.js';
 import { User } from "./users.model.js";
-import { create, deleteOne } from "../../DB/DB.service.js";
 import { LogoutEnum } from '../../common/utils/index.js';
-import { tokenModel } from "../../DB/models/token.model.js";
-import { ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_IN } from "../../../config/config.service.js";
-import { BadRequestException, ConflictException } from "../../common/utils/response/index.js";
+import { set ,revokeTokenKey,baseRevokeTokenKey, deleteKey, allKeysByPrefix} from "../../common/services/redis.service.js";
+import {  REFRESH_TOKEN_EXPIRES_IN } from "../../../config/config.service.js";
 
-export const logout = async ({flag}, user, { jti, iat }) => {
+const createRevokeToken = async ({userId, jti, iat}) => {
+  await set({
+    key :revokeTokenKey({userId, jti}),
+    value: jti,
+    ttl
+  });
+  return;
+}
+
+
+export const logout = async ({flag}, user, { jti, iat,sub }) => {
   let status = 200;
  
   switch (flag) {
     case LogoutEnum.All:
       user.changeCredentialsTime = new Date();
       await user.save();
-      await deleteOne({ model: tokenModel, filter: { userId: user._id } });
+      await deleteKey(await allKeysByPrefix(`${baseRevokeTokenKey(sub)}::*`));
+      
       break;
 
     default:
-     const expireAt= new Date((iat + REFRESH_TOKEN_EXPIRES_IN) * 1000)
-      await create({
-        model: tokenModel,
-        data: {
-          userId: user._id,
-          jti,
-          expiresIn: expireAt
-        }
-      });
+    await createRevokeToken({userId: sub, jti, iat: iat + REFRESH_TOKEN_EXPIRES_IN});
 
       status = 201;
       break;
@@ -62,91 +63,18 @@ export const shareProfile = async (id) => {
 
 };
 
-export const rotateToken = async (user,{ jti, iat }, issuer) => {
+export const rotateToken = async (user,{sub, jti, iat }, issuer) => {
 
-   /* if ((iat + ACCESS_TOKEN_EXPIRES_IN) * 1000 >= Date.now()) {
-    throw ConflictException({ message: "Current access token still valid" });
-  }*/
+    if((iat + REFRESH_TOKEN_EXPIRES_IN)*1000 >= Date.now()*1000)
+       {
+        throw ConflictException({ message: "Token is not expired yet" })
+       }
+   await createRevokeToken({userId: sub, jti, iat: iat + REFRESH_TOKEN_EXPIRES_IN});
 
-  await createOne({
-    model: tokenModel,
-    data: {
-      userId: user._id,
-      jti,
-      expiresIn: new Date((iat + ACCESS_TOKEN_EXPIRES_IN) * 1000)
-    }
-  });
   return createLoginCredentials(user, issuer);
 }
 
 export const profile = async (user) => {
   return user;
 }
-
-/*
-export const updateUser = async (id, updateData) => {
-  try {
-    // Prevent password updates
-    if (updateData.password) {
-      throw new Error("Password cannot be updated here");
-    }
-
-    // If email is being updated, check uniqueness first
-    if (updateData.email) {
-      const existingEmail = await User.findOne({ email: updateData.email });
-      if (existingEmail && existingEmail._id.toString() !== id) {
-        throw new Error("Email already exists");
-      }
-    }
-
-    // Now perform the update
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      updateData,
-      { returnDocument: 'after', runValidators: true }
-    ).select("-password").lean(); // Exclude password from returned user
-
-    if (!updatedUser) {
-      throw new Error("User not found");
-    }
-
-    return updatedUser;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
-
-export const deleteUser = async (id) => {
-  try {
-    const deletedUser = await User.findByIdAndDelete(id);   
-    if (!deletedUser) {
-      throw new Error("User not found");
-    }
-    return deletedUser;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
-
-export const getUser = async (id) => {
-  try {
-    const user = await User.findById(id).lean();
-    return user;
-    } catch (error) {
-    throw new Error(error.message);
-  } 
-};
-
-
-export const GetUser = async (id) => {
-  try {
-    const user = await User.findById(id).lean();
-    return user;
-  } catch (error) {
-    throw new Error(error.message);
-  } 
-};
-
-
-*/
 

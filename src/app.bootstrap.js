@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticateDB } from "./DB/connectionDB.js";
+import { authenticateDB, connectRedis  } from "./DB/models/index.js";
 import { PORT } from "../config/config.service.js";
 import { userRouter } from "./modules/users/index.js";
 import { authRouter } from "./modules/auth/index.js";
@@ -16,6 +16,7 @@ export const bootstrap = async (port) => {
 
   // DB Connection
   await authenticateDB();
+  await connectRedis();
 
 
   // Home route

@@ -1,12 +1,13 @@
 import jwt from "jsonwebtoken";
 import { USER_ACCESS_TOKEN_SECRET_KEY, USER_REFRESH_TOKEN_SECRET_KEY, SYSTEM_ACCESS_TOKEN_SECRET_KEY, SYSTEM_REFRESH_TOKEN_SECRET_KEY, ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_IN } from "../../../../config/config.service.js";
-import { findOne } from "../../../DB/DB.service.js";
+import { findOne } from "../../../DB/models/DB.service.js";
 import { User } from "../../../modules/users/users.model.js";
 import { UnauthorizedException, ConflictException, BadRequestException } from "../../utils/response/index.js";
 import { TokenTypeEnum } from "../../../common/enums/index.js";
 import { roleEnum } from "../../../common/enums/index.js";
 import { randomUUID } from "node:crypto";
-import { tokenModel } from "../../../DB/models/token.model.js";
+import { get } from "../../services/redis.service.js";
+import { revokeTokenKey } from "../../services/redis.service.js";
 
 
 export const generateToken = async ({ payload = {}, secret = USER_ACCESS_TOKEN_SECRET_KEY, options = {} } = {}) => {
@@ -60,7 +61,7 @@ export const decodeToken = async ({ token, tokenType = TokenTypeEnum.Access } = 
     throw ConflictException({ message: `Unexpected token mechanism we expected ${tokenType} while you have used ${tokenApproach}` })
   }
 
-  if (decoded.jti && await findOne({ model: tokenModel, filter: { jti: decoded.jti } })) {
+  if (decoded.jti && await get(revokeTokenKey({userId : decoded.sub,  jti: decoded.jti}))) {
     throw UnauthorizedException({ message: "Invalid login session" })
   }
 

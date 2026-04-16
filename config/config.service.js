@@ -30,8 +30,6 @@ export const SYSTEM_REFRESH_TOKEN_SECRET_KEY = process.env.SYSTEM_REFRESH_TOKEN_
 
 export const ACCESS_TOKEN_EXPIRES_IN = parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN);
 export const REFRESH_TOKEN_EXPIRES_IN = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN);
+export const REDIS_URI = process.env.REDIS_URI;
 
 
-if (!USER_ACCESS_TOKEN_SECRET_KEY || !USER_REFRESH_TOKEN_SECRET_KEY) {
-  console.error("❌ JWT secrets must be set in environment variables");
-}

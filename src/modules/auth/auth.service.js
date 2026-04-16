@@ -4,7 +4,7 @@ import { BadRequestException, createLoginCredentials, ConflictException, NotFoun
 import { User } from "../../modules/users/users.model.js";
 import { OAuth2Client } from 'google-auth-library';
 import { providerEnum } from '../../common/enums/index.js';
-import { create, findOne } from '../../DB/DB.service.js';
+import { create, findOne } from '../../DB/models/DB.service.js';
 
 
 export const signUp = async (userData) => {

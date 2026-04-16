@@ -15,7 +15,7 @@ export const userRouter = Router();
 userRouter.post("/logout", authentication(), async (req, res, next) => {
 
 const account = await service.logout(req.body, req.user, req.decoded);
-return successResponse({ res, data: account, message: "Logout successfully" });
+return successResponse({ res,status:account, message: "Logout successfully" });
 })
 
 

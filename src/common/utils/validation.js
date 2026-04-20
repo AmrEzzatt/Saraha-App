@@ -4,7 +4,7 @@ import { Types } from 'mongoose';
 export const genralValidationFields = {
     email: joi.string().pattern(RegExp('^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$')),
     password: joi.string().pattern(/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W).{1,16}$/),
-
+     otp: joi.string().pattern(RegExp('^\\d{6}$')),
     userName: joi.string().pattern(RegExp('^[A-Z]{1}[a-z]{1,24}\\s[A-Z]{1}[a-z]{1,24}$')).required().messages({
         "string.empty": "User name is empty",
         "any.required": "User name is required"

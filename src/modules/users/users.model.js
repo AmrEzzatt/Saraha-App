@@ -53,9 +53,9 @@ const userSchema = new mongoose.Schema({
   changeCredentialsTime: {
     type: Date,
     default: Date.now 
-}
 },
-  {
+comfirmEmail: Date
+}, {
     strict: true,
     optimisticConcurrency: true,
     toJSON: { virtuals: true },

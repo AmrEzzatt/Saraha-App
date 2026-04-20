@@ -7,6 +7,7 @@ Backend API for a Saraha-style anonymous messaging app built with Node.js, Expre
 This project provides:
 
 - Authentication with email/password
+- Email confirmation with OTP stored in Redis
 - Google sign up
 - JWT access and refresh tokens
 - User profile and share-profile endpoints
@@ -118,6 +119,7 @@ Base routes configured in [src/app.bootstrap.js](/e:/route backend/training/Sara
 Authentication routes:
 
 - `POST /auth/signup`
+- `PATCH /auth/comfirm-Email`
 - `POST /auth/signup/gmail`
 - `POST /auth/login`
 
@@ -132,9 +134,31 @@ User routes:
 
 ## Redis Usage
 
-Redis is used for token revocation support.
+Redis is used for token revocation support and signup OTP storage.
 
 Connection setup lives in [src/DB/models/redis.connection.js](/e:/route backend/training/Saraha App/Code/src/DB/models/redis.connection.js:1), and helper functions live in [src/common/services/redis.service.js](/e:/route backend/training/Saraha App/Code/src/common/services/redis.service.js:1).
+
+OTP keys are stored in this format:
+
+```text
+OTP:User::<email>
+```
+
+The signup flow stores a hashed OTP in Redis, sends the plain OTP by email, and the confirm-email route compares the submitted OTP against the hashed value.
+
+## Auth Flow Notes
+
+- `POST /auth/signup` creates a system user, hashes the password, encrypts the phone number, stores a hashed OTP in Redis, and sends a confirmation email.
+- `PATCH /auth/comfirm-Email` confirms the email for system users only.
+- A confirmed account gets a `comfirmEmail` date saved on the user document.
+- Confirming the same OTP a second time will not match the account lookup, because the account is already marked as confirmed.
+- Duplicate emails are rejected in the signup service before insert, and MongoDB also enforces uniqueness with the `email` index.
+
+## Database Notes
+
+- The `users.email` field is configured as unique in Mongoose.
+- Index synchronization runs on startup, so existing duplicate email records in MongoDB must be cleaned up before the unique index can be created successfully.
+- If duplicate records already exist, MongoDB will throw an `E11000 duplicate key error` while building the `email_1` index.
 
 ## Notes
 

@@ -17,4 +17,9 @@ export const signup = {
 
 }
 
-
+export const comfirmEmail = {
+    body: joi.object().keys({
+        email: genralValidationFields.email.required(),
+        otp: genralValidationFields.otp.required()
+    }).required()
+};

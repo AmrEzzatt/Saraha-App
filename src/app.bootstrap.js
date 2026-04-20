@@ -3,7 +3,7 @@ import { authenticateDB, connectRedis  } from "./DB/models/index.js";
 import { PORT } from "../config/config.service.js";
 import { userRouter } from "./modules/users/index.js";
 import { authRouter } from "./modules/auth/index.js";
-import { globalErrorHandling } from "./common/utils/index.js";
+import { globalErrorHandling, sendEmail } from "./common/utils/index.js";
 import { resolve } from 'path';
 import cors from "cors";
 

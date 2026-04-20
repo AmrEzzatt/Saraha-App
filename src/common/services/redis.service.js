@@ -16,6 +16,10 @@ export const revokeTokenKey = ({userId, jti}) => {
     return `${baseRevokeTokenKey(userId)}::${jti}`;
 }
 
+export const otpkey = (email) => {
+    return `OTP:User::${email}`;
+}
+
 export const set = async ({key, value, ttl = null}) => {
     try {
         const data =

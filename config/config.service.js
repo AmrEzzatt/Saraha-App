@@ -13,7 +13,7 @@ config({ path: resolve(`./config/${envPath[Node_ENV] ?? ".env.development"}`) })
 export const PORT = process.env.PORT ?? 9000
 
 export const DB_URI = process.env.DB_URI;
-export const DB_NAME = process.env.DB_NAME;
+export const App_Name = process.env.App_Name;
 
 export const JWT_SECRET = process.env.JWT_SECRET;
 export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
@@ -32,4 +32,9 @@ export const ACCESS_TOKEN_EXPIRES_IN = parseInt(process.env.ACCESS_TOKEN_EXPIRES
 export const REFRESH_TOKEN_EXPIRES_IN = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN);
 export const REDIS_URI = process.env.REDIS_URI;
 
+export const EMAIL_App = process.env.EMAIL_App;
+export const Email_App_password = process.env.Email_App_password;
 
+export const Facebook_Link = process.env.Facebook_Link;
+export const Instagram_Link = process.env.Instagram_Link;
+export const Twitter_Link = process.env.Twitter_Link;

@@ -15,9 +15,15 @@ authRouter.post("/signup", validation(validator.signup), async (req, res) => {
         const newUser = await service.signUp(req.body);
         return successResponse({ res, data: newUser, status: 201 });
     } catch (error) {
-        if (error.code === 11000) {
-            ConflictException({ message: "Email already exists", extra: error });
-        }
+        throw error;
+    }
+});
+
+authRouter.patch("/comfirm-Email", validation(validator.comfirmEmail), async (req, res) => {
+    try {
+        const account = await service.confirmEmail(req.body);
+        return successResponse({ res, status: 201 });
+    } catch (error) {
         throw error;
     }
 });
